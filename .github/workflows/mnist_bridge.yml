@@ -1,0 +1,29 @@
+name: mnist-data-bridge
+on:
+  push:
+    branches: [mnist-data-bridge]
+  workflow_dispatch:
+jobs:
+  bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install torchvision CPU
+        run: |
+          python -m pip install --upgrade pip
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+      - name: Download canonical MNIST
+        run: |
+          python - <<'PY'
+          from torchvision.datasets import MNIST
+          MNIST('mnist_data', train=True, download=True)
+          MNIST('mnist_data', train=False, download=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canonical-mnist-raw
+          path: mnist_data/MNIST/raw/
